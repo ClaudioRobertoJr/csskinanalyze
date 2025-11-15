@@ -1,39 +1,51 @@
-import sqlite3 from 'sqlite3';
-import { promisify } from 'util';
+import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync, mkdirSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.join(__dirname, '../../data/steam_skins.db');
+// Garantir que o diretório data/ existe
+const dataDir = path.join(__dirname, '../../data');
+if (!existsSync(dataDir)) {
+  console.log('📁 Criando diretório data/...');
+  mkdirSync(dataDir, { recursive: true });
+  console.log('✓ Diretório data/ criado');
+}
 
-export class Database {
-  private db: sqlite3.Database;
+const dbPath = path.join(dataDir, 'steam_skins.db');
+
+export class DatabaseWrapper {
+  private db: Database.Database | null = null;
   private initialized = false;
 
   constructor() {
-    this.db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        console.error('Erro ao conectar ao banco de dados:', err);
-      } else {
-        console.log('Banco de dados conectado:', dbPath);
-      }
-    });
+    try {
+      this.db = new Database(dbPath, { verbose: console.log });
+      console.log('✓ Banco de dados conectado:', dbPath);
+    } catch (error) {
+      console.error('❌ Erro fatal ao criar instância do banco:', error);
+      throw error;
+    }
   }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    await this.createTables();
+    if (!this.db) {
+      throw new Error('Banco de dados não foi inicializado corretamente');
+    }
+
+    this.createTables();
     this.initialized = true;
   }
 
-  private async createTables(): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
+  private createTables(): void {
+    if (!this.db) throw new Error('Banco de dados não conectado');
 
     // Tabela de itens do mercado
-    await run(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS market_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_name TEXT UNIQUE NOT NULL,
@@ -44,7 +56,7 @@ export class Database {
     `);
 
     // Tabela de histórico de preços
-    await run(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS price_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_id INTEGER NOT NULL,
@@ -56,7 +68,7 @@ export class Database {
     `);
 
     // Tabela de análises técnicas
-    await run(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS technical_analysis (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_id INTEGER NOT NULL,
@@ -73,7 +85,7 @@ export class Database {
     `);
 
     // Tabela de sinais de compra/venda
-    await run(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS trading_signals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_id INTEGER NOT NULL,
@@ -90,7 +102,7 @@ export class Database {
     `);
 
     // Tabela de portfólio (itens comprados)
-    await run(`
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS portfolio (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         item_id INTEGER NOT NULL,
@@ -108,41 +120,54 @@ export class Database {
     console.log('✓ Tabelas do banco de dados criadas');
   }
 
-  run(sql: string, params: any[] = []): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.run(sql, params, function(err) {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+  async run(sql: string, params: any[] = []): Promise<void> {
+    if (!this.db) {
+      throw new Error('Banco de dados não está conectado');
+    }
+
+    try {
+      const stmt = this.db.prepare(sql);
+      stmt.run(...params);
+    } catch (error) {
+      console.error('Erro ao executar SQL:', sql, params);
+      throw error;
+    }
   }
 
-  get(sql: string, params: any[] = []): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.db.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+  async get(sql: string, params: any[] = []): Promise<any> {
+    if (!this.db) {
+      throw new Error('Banco de dados não está conectado');
+    }
+
+    try {
+      const stmt = this.db.prepare(sql);
+      return stmt.get(...params);
+    } catch (error) {
+      console.error('Erro ao executar SQL:', sql, params);
+      throw error;
+    }
   }
 
-  all(sql: string, params: any[] = []): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows || []);
-      });
-    });
+  async all(sql: string, params: any[] = []): Promise<any[]> {
+    if (!this.db) {
+      throw new Error('Banco de dados não está conectado');
+    }
+
+    try {
+      const stmt = this.db.prepare(sql);
+      return stmt.all(...params);
+    } catch (error) {
+      console.error('Erro ao executar SQL:', sql, params);
+      throw error;
+    }
   }
 
-  close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+  async close(): Promise<void> {
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
   }
 }
 
-export const db = new Database();
+export const db = new DatabaseWrapper();
