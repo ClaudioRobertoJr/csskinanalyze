@@ -1,9 +1,9 @@
-import { startServer } from './api/server.js';
-import { db } from './database/db.js';
-import { SteamCollector } from './collectors/steamCollector.js';
-import { TechnicalAnalyzer } from './analyzers/technicalAnalyzer.js';
-import { SignalGenerator } from './signals/signalGenerator.js';
-import { portfolioManager } from './api/portfolio.js';
+import { startServer } from './api/server';
+import { db } from './database/db';
+import { SteamCollector } from './collectors/steamCollector';
+import { TechnicalAnalyzer } from './analyzers/technicalAnalyzer';
+import { SignalGenerator } from './signals/signalGenerator';
+import { portfolioManager } from './api/portfolio';
 
 async function main() {
   console.log('╔════════════════════════════════════════╗');
