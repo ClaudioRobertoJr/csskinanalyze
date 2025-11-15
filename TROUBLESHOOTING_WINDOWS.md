@@ -2,44 +2,35 @@
 
 ## Problema: Servidor não inicia (ECONNREFUSED)
 
-Se você está vendo o erro "ECONNREFUSED" no frontend, significa que o servidor backend não está rodando. Veja as soluções abaixo:
+Se você está vendo o erro "ECONNREFUSED" no frontend, significa que o servidor backend não está rodando.
 
-### Solução 1: Recompilar o SQLite3 (Mais comum)
+### ✅ Solução: O projeto usa Better-SQLite3
 
-O pacote `sqlite3` precisa ser recompilado para funcionar corretamente no Windows:
+Este projeto foi atualizado para usar `better-sqlite3` que funciona melhor no Windows e não requer ferramentas de build do Visual Studio.
 
-```bash
-npm rebuild sqlite3
-```
-
-Se isso não funcionar, tente:
+**Simplesmente execute:**
 
 ```bash
-npm uninstall sqlite3
-npm install sqlite3 --build-from-source
+npm install
+npm run dev
 ```
 
-### Solução 2: Instalar Ferramentas de Build do Windows
+### ⚠️ Se você ainda tiver problemas com better-sqlite3
 
-O SQLite3 precisa de ferramentas nativas para compilar no Windows:
+Em casos raros, o better-sqlite3 pode precisar de ferramentas de build. Se você ver erros de compilação:
+
+#### Opção 1: Instalar Visual Studio Build Tools
+
+1. Baixe e instale: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
+2. Durante a instalação, selecione "Desktop development with C++"
+3. Execute: `npm install`
+
+#### Opção 2: Instalar Windows Build Tools
 
 ```bash
 npm install --global windows-build-tools
+npm install
 ```
-
-Ou instale o Visual Studio Build Tools manualmente:
-https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
-
-### Solução 3: Usar Better-SQLite3 (Alternativa)
-
-Se o sqlite3 continuar dando problemas, podemos substituir por `better-sqlite3` que funciona melhor no Windows:
-
-```bash
-npm uninstall sqlite3
-npm install better-sqlite3
-```
-
-(Neste caso, precisaremos ajustar o código)
 
 ## Testar se o problema foi resolvido
 
