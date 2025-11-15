@@ -1,10 +1,10 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import { db } from '../database/db';
-import { portfolioManager } from './portfolio';
-import { SteamCollector } from '../collectors/steamCollector';
-import { TechnicalAnalyzer } from '../analyzers/technicalAnalyzer';
-import { SignalGenerator } from '../signals/signalGenerator';
+import { db } from '../database/db.js';
+import { portfolioManager } from './portfolio.js';
+import { SteamCollector } from '../collectors/steamCollector.js';
+import { TechnicalAnalyzer } from '../analyzers/technicalAnalyzer.js';
+import { SignalGenerator } from '../signals/signalGenerator.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;

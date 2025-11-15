@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { db } from '../database/db';
+import { db } from '../database/db.js';
 
 interface SteamMarketItem {
   name: string;
