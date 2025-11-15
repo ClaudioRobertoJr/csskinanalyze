@@ -1,5 +1,5 @@
 import { RSI, MACD, SMA } from 'technicalindicators';
-import { db } from '../database/db';
+import { db } from '../database/db.js';
 
 export interface AnalysisResult {
   itemId: number;
