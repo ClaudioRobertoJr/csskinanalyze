@@ -2,28 +2,52 @@ import sqlite3 from 'sqlite3';
 import { promisify } from 'util';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync, mkdirSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.join(__dirname, '../../data/steam_skins.db');
+// Garantir que o diretório data/ existe
+const dataDir = path.join(__dirname, '../../data');
+if (!existsSync(dataDir)) {
+  console.log('📁 Criando diretório data/...');
+  mkdirSync(dataDir, { recursive: true });
+  console.log('✓ Diretório data/ criado');
+}
+
+const dbPath = path.join(dataDir, 'steam_skins.db');
 
 export class Database {
-  private db: sqlite3.Database;
+  private db: sqlite3.Database | null = null;
   private initialized = false;
+  private connectionError: Error | null = null;
 
   constructor() {
-    this.db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        console.error('Erro ao conectar ao banco de dados:', err);
-      } else {
-        console.log('Banco de dados conectado:', dbPath);
-      }
-    });
+    try {
+      this.db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+          console.error('❌ Erro ao conectar ao banco de dados:', err.message);
+          this.connectionError = err;
+        } else {
+          console.log('✓ Banco de dados conectado:', dbPath);
+        }
+      });
+    } catch (error) {
+      console.error('❌ Erro fatal ao criar instância do banco:', error);
+      this.connectionError = error instanceof Error ? error : new Error(String(error));
+    }
   }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
+
+    if (this.connectionError) {
+      throw new Error(`Não foi possível conectar ao banco de dados: ${this.connectionError.message}`);
+    }
+
+    if (!this.db) {
+      throw new Error('Banco de dados não foi inicializado corretamente');
+    }
 
     await this.createTables();
     this.initialized = true;
@@ -109,8 +133,11 @@ export class Database {
   }
 
   run(sql: string, params: any[] = []): Promise<void> {
+    if (!this.db) {
+      return Promise.reject(new Error('Banco de dados não está conectado'));
+    }
     return new Promise((resolve, reject) => {
-      this.db.run(sql, params, function(err) {
+      this.db!.run(sql, params, function(err) {
         if (err) reject(err);
         else resolve();
       });
@@ -118,8 +145,11 @@ export class Database {
   }
 
   get(sql: string, params: any[] = []): Promise<any> {
+    if (!this.db) {
+      return Promise.reject(new Error('Banco de dados não está conectado'));
+    }
     return new Promise((resolve, reject) => {
-      this.db.get(sql, params, (err, row) => {
+      this.db!.get(sql, params, (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -127,8 +157,11 @@ export class Database {
   }
 
   all(sql: string, params: any[] = []): Promise<any[]> {
+    if (!this.db) {
+      return Promise.reject(new Error('Banco de dados não está conectado'));
+    }
     return new Promise((resolve, reject) => {
-      this.db.all(sql, params, (err, rows) => {
+      this.db!.all(sql, params, (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
       });
@@ -136,8 +169,11 @@ export class Database {
   }
 
   close(): Promise<void> {
+    if (!this.db) {
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
-      this.db.close((err) => {
+      this.db!.close((err) => {
         if (err) reject(err);
         else resolve();
       });
