@@ -1,5 +1,5 @@
-import { startServer } from './api/server';
-import { db } from './database/db';
+import { startServer } from './api/server.js';
+import { db } from './database/db.js';
 
 async function main() {
   console.log('╔════════════════════════════════════════╗');
