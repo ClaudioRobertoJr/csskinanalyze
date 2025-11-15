@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import Dashboard from './pages/Dashboard';
 import ItemsList from './pages/ItemsList';
@@ -15,7 +15,7 @@ function App() {
     setLoading(true);
     setMessage('');
     try {
-      const response = await axios.post(`/api/operations/${operation}`);
+      await axios.post(`/api/operations/${operation}`);
       setMessage(`✓ ${operation.charAt(0).toUpperCase() + operation.slice(1)} concluído com sucesso!`);
       // Recarregar dados em todos os componentes
       window.location.reload();

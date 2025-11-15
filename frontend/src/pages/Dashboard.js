@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import StatCard from '../components/StatCard';
-import PriceChart from '../components/PriceChart';
 
 function Dashboard() {
   const [stats, setStats] = useState(null);

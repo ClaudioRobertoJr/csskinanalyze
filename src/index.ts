@@ -16,7 +16,8 @@ async function main() {
     await db.initialize();
     console.log('✓ Banco de dados inicializado\n');
 
-    // Iniciar servidor
+    // Iniciar servidor PRIMEIRO
+    console.log('🚀 Iniciando servidor...\n');
     await startServer();
 
     // Agendar coleta de dados a cada 2 horas
@@ -47,19 +48,31 @@ async function main() {
       }
     }, 2 * 60 * 60 * 1000); // 2 horas
 
-    // Executar uma vez na inicialização
-    console.log('🔄 Executando primeira sincronização...\n');
-    const collector = new SteamCollector();
-    await collector.collectPopularSkins();
-    await collector.updatePrices();
+    // Executar primeira sincronização em background (não bloqueia servidor)
+    console.log('🔄 Executando primeira sincronização (background)...\n');
+    setImmediate(async () => {
+      try {
+        const collector = new SteamCollector();
+        console.log('\n📦 Coletando skins populares...');
+        await collector.collectPopularSkins();
 
-    const analyzer = new TechnicalAnalyzer();
-    await analyzer.analyzeAllItems();
+        console.log('💰 Atualizando preços...');
+        await collector.updatePrices();
 
-    const generator = new SignalGenerator();
-    await generator.generateSignals();
+        console.log('📊 Analisando tendências...');
+        const analyzer = new TechnicalAnalyzer();
+        await analyzer.analyzeAllItems();
 
-    console.log('\n✓ Sistema pronto e operacional!\n');
+        console.log('🎯 Gerando sinais...');
+        const generator = new SignalGenerator();
+        await generator.generateSignals();
+
+        console.log('\n✓ Primeira sincronização concluída!\n');
+      } catch (error) {
+        console.error('⚠️ Erro na primeira sincronização:', error);
+      }
+    });
+
   } catch (error) {
     console.error('❌ Erro fatal:', error);
     process.exit(1);
