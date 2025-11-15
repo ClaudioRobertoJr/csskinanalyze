@@ -6,13 +6,13 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "server:dev": "cross-env NODE_OPTIONS='--loader ts-node/esm --experimental-specifier-resolution=node --no-warnings' ts-node-esm src/index.ts",
+    "server:dev": "ts-node-esm src/index.ts",
     "server:build": "tsc",
     "server:start": "node dist/src/index.js",
     "client:dev": "cd frontend && npm start",
     "client:build": "cd frontend && npm run build",
-    "collect-data": "cross-env NODE_OPTIONS='--loader ts-node/esm --experimental-specifier-resolution=node --no-warnings' ts-node-esm src/collectors/steamCollector.ts",
-    "analyze": "cross-env NODE_OPTIONS='--loader ts-node/esm --experimental-specifier-resolution=node --no-warnings' ts-node-esm src/analyzers/technicalAnalyzer.ts",
+    "collect-data": "ts-node-esm src/collectors/steamCollector.ts",
+    "analyze": "ts-node-esm src/analyzers/technicalAnalyzer.ts",
     "test": "jest"
   },
   "dependencies": {
