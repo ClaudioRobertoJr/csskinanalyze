@@ -6,8 +6,8 @@
     "skipProject": false,
     "transpileOnly": true,
     "compilerOptions": {
-      "module": "ES2020",
-      "moduleResolution": "node"
+      "module": "Node16",
+      "moduleResolution": "node16"
     }
   }
 }
